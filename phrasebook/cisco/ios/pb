@@ -1,0 +1,2 @@
+macro paging
+    send terminal length %s

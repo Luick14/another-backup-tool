@@ -1,0 +1,7 @@
+macro save
+	send save
+	match prompt
+	
+macro paging
+    send set console page %s
+	match prompt

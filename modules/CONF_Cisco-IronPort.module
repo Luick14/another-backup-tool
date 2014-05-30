@@ -1,0 +1,280 @@
+#!/usr/bin/perl -w
+
+# $Id: CONF_Cisco-IronPort.module 561 2013-02-04 17:10:13Z marc@mguyard.com $
+
+use strict;
+use warnings;
+use FindBin;
+use lib "$FindBin::Bin/../libs";
+use ABT::Global;
+use ABT::Modules;
+use Getopt::Long;
+use Pod::Usage;
+use Switch;
+use Net::OpenSSH;
+
+###################
+# Script Variable #
+###################
+
+my $module_device = "[CONF] Cisco IronPort";
+my $module_description = "Module Cisco IronPort (Backup by SCP)";
+my $author = 'Marc GUYARD <m.guyard@orange-ftgroup.com>';
+my $version = '0.1';
+
+#####################
+# Default arguments #
+#####################
+
+my $GenConfigFile;
+my $ConfigFile;
+my $show_help;
+my $show_man;
+my $default_retention = "15";
+
+#############
+# Functions #
+#############
+
+## Function who show the module short description
+sub description {
+	print $program."\n	".$module_device." - ".$module_description." (version : ".$version.").\n\n";
+}
+
+# Function who verify the IronPort type
+sub ironport_model {
+	my $ironport_model = $_[0];
+	switch ($ironport_model) {
+		case "S" { return 1; }
+		case "C" { return 1; }
+		case "M" { return 1; }
+		else {
+			$logger->error("The IronPort model entered (".$ironport_model.") isn't valid (S,C or M)");
+			return 0;
+		}
+	}
+}
+
+## Function who generate a XML configuration file
+sub generate {
+	$logger->debug("[".$GenConfigFile."] Generating configuration file ") if $verbose;
+	# Question function : 
+	#	ARG1 : Question
+	# 	ARG2 : Default Reply
+	#	ARG3 : Reply is mandatory ? (1 => YES / 0 = NO)
+	#	ARG4 : Function to verify the reply conformity
+	my $device_ip_address = &questions("Please enter the Device IP to backup", "", "1", "verify_ip");
+	my $device_description = &questions("Please enter the description of the device", "", "1", "");
+	my $username = &questions("Please enter the device username", "root", "1", "");
+	my $certificate = &questions("Please enter the SSH certificate (leave empty to use the default certificate)", "", "0", "");
+	my $ironport_model = &questions("What IronPort model is it (S/C/M) - case sensitive", "", "1", "main::ironport_model");
+	my $store_folder = &questions("Please specify the folder who store the backup", "", "1", "verify_folder");
+	my $file_prefix = &questions("Please enter the backup file prefix (date automaticly add)", "", "1", "");
+	my $retention = &questions("Please enter configuration retention in number of save backup (leave empty to use the default retention : ".$default_retention.")", "", "0", "verify_retention");
+	my %XML = (
+		'enable' => '1',
+		'module' => $program,
+		'date' => $date,
+		'ip' => $device_ip_address,
+		'description' => $device_description,
+		'username' => $username,
+		'certificate' => $certificate,
+		'ironport-model' => $ironport_model,
+		'store-folder' => $store_folder,
+		'file-prefix' => $file_prefix,
+		'retention' => $retention,
+		); ## To Update with all information need
+	my $Config = new XML::Simple (NoAttr=>1, NoSort => 1, KeepRoot => 1);
+	my $Config_data = $Config->XMLout({config=>\%XML}, outputfile=>$GenConfigFile, NoAttr=>1);
+	$logger->info("[".$GenConfigFile."] Configuration generation finish... ");
+}
+
+## Function who backup device
+sub backup {
+	$logger->debug("[".$ConfigFile."] Starting backuping configuration ") if $verbose;
+	# Declare all configuration from the XML file
+	my $config_parsing = &parse_config($ConfigFile);
+	my $device_ip_address = $config_parsing->{'ip'};
+	my $username = $config_parsing->{'username'};
+	my $certificate = $config_parsing->{'certificate'};
+	my $ironport_model = $config_parsing->{'ironport-model'};
+	my $store_folder = $config_parsing->{'store-folder'};
+	my $file_prefix = $config_parsing->{'file-prefix'};
+	my $retention = $config_parsing->{'retention'};
+	# Test if $retention is empty. If empty, use $default_retention
+	$retention = $default_retention if ( $retention eq "" );
+	my $configuration_filename = $store_folder."/".$file_prefix."_".$date.".xml";
+	# Backup
+	$Net::OpenSSH::debug = -1 if $verbose;
+	my $ssh;
+	if ( $certificate ) {
+		$ssh = Net::OpenSSH->new($device_ip_address,
+			user		=> $username,
+			key_path	=> $certificate,
+			kill_ssh_on_timeout => 1,
+			timeout		=> 30,
+		);
+	} else {
+		$ssh = Net::OpenSSH->new($device_ip_address,
+			user		=> $username,
+			kill_ssh_on_timeout => 1,
+			timeout		=> 30,
+		);
+	}
+	$ssh->error and &return_code(50, "Couldn't establish SSH connection : " . $ssh->error);
+	# Retreive the version
+	my $stderr = 1;
+	$stderr = 0 if $verbose;
+	my $version_capture = $ssh->capture({ stderr_discard => $stderr }, "version");
+		$ssh->error and &return_code(50, "Unable to retreive version : " . $ssh->error);
+	$version_capture =~ m/Version: (.*)\n/;
+	my $version = $1;
+	my $version_split = substr($version,0,3);
+	$logger->debug("Version : ".$version." / Version Split : ".$version_split) if $verbose;
+	# Specify the command dependant on version
+	my $backup_command;
+	if ($version_split >= 7.5) {
+		$backup_command = "saveconfig no";
+		$logger->debug("Device version (".$version_split.") is superior or equal to 7.5. The command is '".$backup_command."'") if $verbose;
+	} else {
+		$backup_command = "saveconfig yes";
+		$logger->debug("Device version (".$version_split.") is inferior to 7.5. The command is '".$backup_command."'") if $verbose;
+	}
+	$logger->debug("IronPort Model : ".$ironport_model) if $verbose;
+	# Generate backup
+	my $configname_capture = $ssh->capture({ stderr_discard => $stderr }, $backup_command);
+		$ssh->error and &return_code(50, "Backup configuration failed : " . $ssh->error);
+	my $configsearch_regex;
+	if (defined($ironport_model)) {
+		switch ($ironport_model) {
+			case "C" { $configsearch_regex = 'File written on machine ".*" to the location\s+"(.*)".\n'; }
+			else { $configsearch_regex = 'The file (.*) has been saved';}
+		}
+		$configname_capture =~ m/$configsearch_regex/;
+		my $filename = $1;
+		$logger->debug("[".$ConfigFile."] XML Filename => ".$filename."...") if $verbose;
+		# If Filename start with a slash
+		if ($filename !~ m/\//) {
+			$filename = '/configuration/'.$filename;
+		}
+		#SCP download
+		$ssh->scp_get($filename, $configuration_filename);
+			$ssh->error and &return_code(50, "SCP Configuration failed : " . $ssh->error);
+		# Change file right
+		chmod(0644,$configuration_filename) || $logger->warn("[".$ConfigFile."] Change file right to 0644");
+		# Purge old backup
+		&purge_files($retention, $store_folder, "^".$file_prefix."_.*");
+	} else {
+		&return_code(50, "IronPort model not defined in configuration");
+	}
+}
+
+##########
+# Script #
+##########
+
+# Check If arguments are present
+if ( @ARGV > 0 ) {
+	# Parse Arguments
+	GetOptions( 	
+		"d|description" => \&description,
+		"c|config=s" => \$ConfigFile,
+		"g|generate=s" => \$GenConfigFile,
+		"v|verbose" => \$verbose,
+		"q|quiet" => sub { $verbose = 0 },
+		"man" => \$show_man,
+		"h|help|?" => \$show_help 
+	)
+	# Show usage if no argument match
+	or pod2usage({-message => "Argument unknown\n", -exitval => 1});
+} else {
+	# Show usage if no argument specified
+	pod2usage({-message => "No argument specify\n", -exitval => 2});
+}
+
+# Show help usage
+pod2usage(1) if $show_help;
+# Show man usage
+pod2usage(-verbose => 2) if $show_man;
+
+# Call functions
+&generate($GenConfigFile) if $GenConfigFile;
+&backup($ConfigFile) if $ConfigFile;
+
+
+__END__
+
+=head1 NAME
+
+ABTM - Another Backup Tool Module
+
+=head1 AUTHOR
+
+Script written by Marc GUYARD for Orange NIS <m.guyard@orange-ftgroup.com>.
+
+=head1 VERSION
+
+0.1 BETA PERL
+
+=head1 SYNOPSIS
+
+	Options:
+		--description
+			show the module description
+		--config <configuration_file>
+			use a configuration file specified
+		--generate <configuration_file>
+			generate a configuration file specified
+		--verbose
+			active script verbose
+		--quiet
+			active script quiet mode
+		--man
+			full documentation
+		--help
+			brief help message
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--description>
+
+Show the module description
+
+=item B<--config>
+
+Backup using a configuration file specify in argument.
+
+=item B<--generate>
+
+Generate a configuration file with the path and the name specify in argument.
+
+=item B<--verbose>
+
+Activate verbose mode. Should be used with another argument.
+
+=item B<--quiet>
+
+Activate quiet mode. Should be used with another argument.
+
+=item B<--help>
+
+Print a brief help message and exits.
+
+=item B<--man>
+
+Prints the manual page and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<This program> is a module of ABT (Another Backup Tool).
+
+=head1 RETURN CODE
+
+	Return Code :
+
+
+=cut
