@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id: CONF_Cisco-IronPort.module 561 2013-02-04 17:10:13Z marc@mguyard.com $
-
 use strict;
 use warnings;
 use FindBin;
@@ -58,7 +56,7 @@ sub ironport_model {
 ## Function who generate a XML configuration file
 sub generate {
 	$logger->debug("[".$GenConfigFile."] Generating configuration file ") if $verbose;
-	# Question function : 
+	# Question function :
 	#	ARG1 : Question
 	# 	ARG2 : Default Reply
 	#	ARG3 : Reply is mandatory ? (1 => YES / 0 = NO)
@@ -176,14 +174,14 @@ sub backup {
 # Check If arguments are present
 if ( @ARGV > 0 ) {
 	# Parse Arguments
-	GetOptions( 	
+	GetOptions(
 		"d|description" => \&description,
 		"c|config=s" => \$ConfigFile,
 		"g|generate=s" => \$GenConfigFile,
 		"v|verbose" => \$verbose,
 		"q|quiet" => sub { $verbose = 0 },
 		"man" => \$show_man,
-		"h|help|?" => \$show_help 
+		"h|help|?" => \$show_help
 	)
 	# Show usage if no argument match
 	or pod2usage({-message => "Argument unknown\n", -exitval => 1});

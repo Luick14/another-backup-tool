@@ -1,5 +1,3 @@
-# $Id: Global.pm 700 2014-01-14 16:44:10Z marc@mguyard.com $
-
 package ABT::Global;
 use Exporter;
 our @ISA = qw(Exporter);
@@ -49,15 +47,15 @@ sub logfile_name {
 }
 
 sub debugfile_name {
-	
+
 	return $debugfile;
 }
 
-## Log Configuration 
+## Log Configuration
 our $log_conf = q(
-    log4perl.category = DEBUG, Logfile, DebugFile, Screen 
-	
-	log4perl.appender.Logfile = Log::Log4perl::Appender::File 
+    log4perl.category = DEBUG, Logfile, DebugFile, Screen
+
+	log4perl.appender.Logfile = Log::Log4perl::Appender::File
 	log4perl.appender.Logfile.filename = sub { ABT::Global::logfile_name(); };
 	log4perl.appender.Logfile.layout = Log::Log4perl::Layout::PatternLayout
 	log4perl.appender.Logfile.layout.ConversionPattern = %d > [%p -- %F] %m %n
@@ -68,8 +66,8 @@ our $log_conf = q(
     log4perl.appender.DebugFile.layout = Log::Log4perl::Layout::PatternLayout
 	log4perl.appender.DebugFile.layout.ConversionPattern = %d > [%p -- %F] %m %n
 	log4perl.appender.DebugFile.Threshold = DEBUG
-	
-	log4perl.appender.Screen        = Log::Log4perl::Appender::ScreenColoredLevels 
+
+	log4perl.appender.Screen        = Log::Log4perl::Appender::ScreenColoredLevels
 	log4perl.appender.Screen.layout = Log::Log4perl::Layout::SimpleLayout
 );
 Log::Log4perl::init( \$log_conf );

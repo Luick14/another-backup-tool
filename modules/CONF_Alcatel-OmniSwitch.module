@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id: CONF_Alcatel-OmniSwitch.module 692 2013-10-30 19:38:51Z marc@mguyard.com $
-
 use strict;
 use warnings;
 use FindBin;
@@ -43,7 +41,7 @@ sub description {
 ## Function who generate a XML configuration file
 sub generate {
 	$logger->debug("[".$GenConfigFile."] Generating configuration file ") if $verbose;
-	# Question function : 
+	# Question function :
 	#	ARG1 : Question
 	# 	ARG2 : Default Reply
 	#	ARG3 : Reply is mandatory ? (1 => YES / 0 = NO)
@@ -95,7 +93,7 @@ sub backup {
 		$newestfile{$backup_type} = &newest_file($store_folder, "^".$file_prefix."_".$backup_type."_.*");
 		$logger->debug("Newest Configuration for configuration ".$backup_type." :".$newestfile{$backup_type}) if $newestfile{$backup_type};
 	}
-	
+
 	# Backup
 	my %args = (user => $username, password => $password, more => [qw(-o PreferredAuthentications=password -v)]);
 	#$Net::SFTP::Foreign::debug = -1; # DEBUG
@@ -140,14 +138,14 @@ sub backup {
 # Check If arguments are present
 if ( @ARGV > 0 ) {
 	# Parse Arguments
-	GetOptions( 	
+	GetOptions(
 		"d|description" => \&description,
 		"c|config=s" => \$ConfigFile,
 		"g|generate=s" => \$GenConfigFile,
 		"v|verbose" => \$verbose,
 		"q|quiet" => sub { $verbose = 0 },
 		"man" => \$show_man,
-		"h|help|?" => \$show_help 
+		"h|help|?" => \$show_help
 	)
 	# Show usage if no argument match
 	or pod2usage({-message => "Argument unknown\n", -exitval => 1});

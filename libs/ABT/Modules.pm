@@ -1,5 +1,3 @@
-# $Id: Modules.pm 675 2013-10-30 18:25:08Z marc@mguyard.com $
-
 package ABT::Modules;
 use Exporter;
 our @ISA = qw(Exporter);
@@ -65,7 +63,7 @@ sub ssh_or_telnet {
 	switch ($transport) {
 		case "SSH" { return 1; }
 		case "Telnet" { return 1; }
-		else { 
+		else {
 			$logger->error("The transport type entered (".$transport.") isn't valid (SSH or Telnet)");
 			return 0;
 		}

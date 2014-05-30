@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id: ABT.pl 656 2013-08-26 12:03:55Z marc@mguyard.com $
-
 use strict;
 use warnings;
 use FindBin;
@@ -203,10 +201,10 @@ sub generate_configfile {
 			chomp($Response);
 			switch ( uc($Response) ) {
 				case "Y" { $valid = '1'; }
-				case "N" { 
+				case "N" {
 					$logger->info("Generation aborted by the user. Configuration file ".$ConfigFile." already exist.");
 					$valid = '1'; }
-				else { 
+				else {
 					$logger->error("The response isn't valid. Please try again.");
 				}
 			}
@@ -237,7 +235,7 @@ sub launch_backup {
 	$logger->debug("Launch from : ".hostname." at ".strftime("%Y-%m-%d %H:%M", localtime)) if $verbose;
 	$logger->debug("Backup Type : ".$Backup_Type) if $verbose;
 	switch ($Backup_Type) {
-		case "file" 
+		case "file"
 			{
 				$logger->debug("File : ".$Config) if $verbose;
 				if ( ! -f $Config || ! -R $Config) {
@@ -268,7 +266,7 @@ sub launch_backup {
 						}
 					}
 				}
-				
+
 			}
 		case "directory"
 			{
@@ -343,7 +341,7 @@ sub launch_backup {
 # Check If arguments are present
 if ( @ARGV > 0 ) {
 	# Parse Arguments
-	GetOptions( 	
+	GetOptions(
 		"c|config=s" => \$one_configfile,
 		"d|directory=s" => \$directory_configfile,
 		"m|modules-list" => \&modules_list,
@@ -353,7 +351,7 @@ if ( @ARGV > 0 ) {
 		"v|verbose" => \$verbose,
 		"q|quiet" => sub { $verbose = 0 },
 		"man" => \$show_man,
-		"h|help|?" => \$show_help 
+		"h|help|?" => \$show_help
 	)
 	# Show usage if no argument match
 	or pod2usage({-message => "Argument unknown\n", -exitval => 1});
@@ -391,7 +389,7 @@ Script written by Marc GUYARD for Orange NIS <m.guyard@orange-ftgroup.com>.
 
 =head1 SYNOPSIS
 
-B<ABT.pl> 
+B<ABT.pl>
 
 	Options:
 		--config <configuration_file>

@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id: CONF_CheckPoint.module 707 2014-05-30 09:47:47Z marc@mguyard.com $
-
 use strict;
 use warnings;
 use FindBin;
