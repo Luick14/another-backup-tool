@@ -305,9 +305,8 @@ sub backup {
 						my $FWDIR = $ssh->capture("source /etc/profile && env | egrep '^FWDIR='");
 						$FWDIR =~ m/FWDIR=(\X+)\n/;
 						$FWDIR = $1;
-						my ($output, $errput) = $ssh->system({ stderr_discard => $stderr, timeout => 600 }, "source /etc/profile && ".$FWDIR."/bin/upgrade_tools/migrate export -n /var/log/migrate-export_".$date."-config");
+						$ssh->system({ stderr_discard => $stderr, timeout => 600 }, "source /etc/profile && ".$FWDIR."/bin/upgrade_tools/migrate export -n /var/log/migrate-export_".$date."-config");
 							$ssh->error and &return_code(50, "Backup configuration failed : " . $ssh->error);
-                        print "TEST == ".$output;
 					# If SmartCenter is Secondary
 					} else {
 						$logger->debug("SmartCenter is Secondary. Don't backup with 'upgrade_export'");
@@ -329,6 +328,7 @@ sub backup {
 
 			# SCP download
 			if (defined($local_filename_system)) {
+                $logger->debug("CheckPoint System Configuration Backup SCP started ...") if $verbose;
 				$ssh->scp_get({ glob => 1, timeout => $timeout_scp }, $local_filename_system, $configuration_filename);
 					$ssh->error and &cleanup($configuration_filename) and &return_code(50, "SCP Backup Configuration failed : " . $ssh->error);
 				# Delete backup on device
@@ -339,6 +339,7 @@ sub backup {
 			}
 			# SCP download
 			if (defined($local_filename_checkpoint)) {
+                $logger->debug("CheckPoint Configuration Backup SCP started ...") if $verbose;
 				$ssh->scp_get({ glob => 1, timeout => $timeout_scp }, $local_filename_checkpoint, $configuration_filename_checkpoint);
 					$ssh->error and &cleanup($configuration_filename) and &return_code(50, "SCP Backup Configuration failed : " . $ssh->error);
 				# Delete backup on device
