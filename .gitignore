@@ -1,0 +1,14 @@
+# Ignore configurations files
+configuration/*/*.config
+
+# Ignore all hide files/folders
+.*
+
+# Ignore Configuration.ini
+configuration.ini
+
+# Ignore Logs
+logs/*
+
+# Except .gitignore
+!.gitignore
