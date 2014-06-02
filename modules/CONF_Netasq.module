@@ -29,7 +29,7 @@ my $show_help;
 my $show_man;
 my $default_retention = "15";
 my $nsrpc_binary = $dirname."/../binairies/Netasq/nsrpc";
-my $nsrpc_command = $dirname."/../binairies/Netasq/backup.nsrpc";
+my $nsrpc_command = $dirname."/../binairies/Netasq/backup.nsrpc.tmp";
 my $nsrpc_backupfile = $dirname."/../binairies/Netasq/backup.na";
 
 #############

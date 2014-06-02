@@ -4,11 +4,15 @@ configurations/*/*.config
 # Ignore all hide files/folders
 .*
 
+# Ignore Temporary File
+*.tmp
+
 # Ignore Configuration.ini
 configuration.ini
 
 # Ignore Logs
 logs/*
 
-# Except .gitignore
+# Except .git Files
 !.gitignore
+!.gitkeep
