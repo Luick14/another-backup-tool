@@ -1,5 +1,5 @@
 # Ignore configurations files
-configuration/*/*.config
+configurations/*/*.config
 
 # Ignore all hide files/folders
 .*
