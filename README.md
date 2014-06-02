@@ -1,4 +1,4 @@
 another-backup-tool
 ===================
 
-Outil de sauvegarde multi-constructeur
+Outil de sauvegarde multi-constructeurs
