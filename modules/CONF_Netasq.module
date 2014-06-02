@@ -92,7 +92,7 @@ sub backup {
 	my $configuration_filename = $store_folder."/".$file_prefix."_".$date.".na";
 	# Backup
 	&generate_nsrpc_command($configuration_filename);
-	open NSRPC, "$nsrpc_binary -c $nsrpc_command $username:$password\@$device_ip_address|";
+	open NSRPC, "$nsrpc_binary -c $nsrpc_command $username:$password\@$device_ip_address|" or &return_code(50, "Failed to launch the backup : " . $!);;
 	while( my $output_nsrpc = <NSRPC> ) {
 		$logger->debug("[".$ConfigFile."]". $output_nsrpc) if $verbose;
 	}
