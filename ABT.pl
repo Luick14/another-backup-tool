@@ -42,7 +42,7 @@ sub parse_configvars {
 ###################
 
 my $script_name = 'ABT - Another Backup Tool';
-my $author = 'Marc GUYARD <m.guyard@orange-ftgroup.com>';
+my $author = 'Marc GUYARD <m.guyard@orange.com>';
 my $version = '0.1';
 my $config_path = $dirname.'/configurations';
 my $modules_path = $dirname.'/modules';
@@ -381,7 +381,7 @@ ABT - Another Backup Tool
 
 =head1 AUTHOR
 
-Script written by Marc GUYARD for Orange NIS <m.guyard@orange-ftgroup.com>.
+Script written by Marc GUYARD for Orange NIS <m.guyard@orange.com>.
 
 =head1 VERSION
 
