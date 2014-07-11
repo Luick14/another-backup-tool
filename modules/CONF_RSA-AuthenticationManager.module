@@ -115,8 +115,8 @@ sub backup {
 	my $stderr = 1;
 	$stderr = 0 if $verbose;
     # Remove persistente files (on provious errors)
-    $ssh->system({ stderr_discard => $stderr, timeout => 1800 }, "rm -f /var/tmp/database.secrets");
-        $ssh->error and &return_code(50, "File Clean failed : " . $ssh->error);
+    $ssh->system({ stderr_discard => $stderr}, "rm -f /var/tmp/database.dump /var/tmp/configuration.tgz /var/tmp/RSAAuthenticationManager_backup.tgz /var/tmp/IMS_DB_BACKUP_*.log /var/tmp/database.secrets");
+        $ssh->error and &return_code(50, "Backup remove failed : " . $ssh->error);
 	# Backup Database
 	$ssh->system({ stderr_discard => $stderr, timeout => 1800 }, "sudo -u ".$rsa_username." ".$rsa_am_home."/utils/rsautil manage-backups -a export -f /var/tmp/database.dump -m ".$master_pass);
 		$ssh->error and &return_code(50, "Database Backup failed : " . $ssh->error);
@@ -130,7 +130,7 @@ sub backup {
 	$ssh->scp_get({ timeout => 7200 }, '/var/tmp/RSAAuthenticationManager_backup.tgz', $configuration_filename);
 		$ssh->error and &return_code(50, "SCP Configuration failed : " . $ssh->error);
 	# Delete backup on device
-	$ssh->system({ stderr_discard => $stderr}, "rm -f /var/tmp/database.dump /var/tmp/configuration.tgz /var/tmp/RSAAuthenticationManager_backup.tgz /var/tmp/IMS_DB_BACKUP_*.log /var/tmp/database.secrets");
+	$ssh->system({ stderr_discard => $stderr}, "rm -f /var/tmp/configuration.tgz /var/tmp/RSAAuthenticationManager_backup.tgz");
 		$ssh->error and &return_code(50, "Backup remove failed : " . $ssh->error);
 	# Purge old backup
 	&purge_files($retention, $store_folder, "^".$file_prefix."_.*");
