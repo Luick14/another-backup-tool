@@ -91,6 +91,8 @@ sub backup {
 	my $mech = WWW::Mechanize->new(
 		agent => 'Backup NSOC NIS' ,
 		autocheck => 0,
+        timeout => 60,
+        show_progress => $verbose,
 		ssl_opts => { verify_hostname => 0 }
 	);
 	my $login_page = "https://".$device_ip_address.":".$webui_port."/admin/";
