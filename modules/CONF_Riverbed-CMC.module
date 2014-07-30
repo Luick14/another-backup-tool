@@ -88,9 +88,10 @@ sub backup {
 	#SCP download
 	my $scp = Net::SCP::Expect->new(
 		host		=> $device_ip_address,
+		user		=> $username,
+		$password	=> $password,
 		timeout		=> 120,
 		);
-	$scp->login($username, $password);
 	my $ret = $scp->scp('/var/opt/tms/configs/*', $configuration_filename);
 	($ret != 1) and &return_code(50, "Couldn't establish SCP !");
 
