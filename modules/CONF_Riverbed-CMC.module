@@ -90,6 +90,7 @@ sub backup {
 		host		=> $device_ip_address,
 		user		=> $username,
 		$password	=> $password,
+		recursive	=> 1,
 		timeout		=> 120,
 		);
 	my $ret = $scp->scp('/var/opt/tms/configs/*', $configuration_filename);
