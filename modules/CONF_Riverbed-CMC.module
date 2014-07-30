@@ -85,7 +85,6 @@ sub backup {
 	$retention = $default_retention if ( $retention eq "" );
 	my $configuration_filename = $store_folder."/".$file_prefix."_".$date.".zip";
 
-	# Backup
 	#SCP download
 	my $scp = Net::SCP::Expect->new(
 		timeout		=> 120,
