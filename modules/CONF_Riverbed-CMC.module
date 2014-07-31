@@ -69,6 +69,10 @@ sub generate {
 	my $Config_data = $Config->XMLout({config=>\%XML}, outputfile=>$GenConfigFile, NoAttr=>1);
 	$logger->info("[".$GenConfigFile."] Configuration generation finish... ");
 }
+sub scp_error
+{
+	&return_code(50, 'error using scp : ' . $_[0]);
+}
 
 ## Function which backup device
 sub backup {
@@ -92,8 +96,8 @@ sub backup {
 		password	=> $password,
 		timeout		=> 120,
 		);
+	$scp->error_handler(\&scp_error);
 	my $ret = $scp->scp(':/var/opt/tms/configs/*', $configuration_filename);
-	($ret != 1) and &return_code(50, "Couldn't establish SCP !");
 
 	# Change file right
 	chmod(0644,$configuration_filename) || $logger->warn("[".$ConfigFile."] Change file right to 0644");
