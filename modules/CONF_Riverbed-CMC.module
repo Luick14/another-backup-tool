@@ -89,11 +89,10 @@ sub backup {
 	my $scp = Net::SCP::Expect->new(
 		host		=> $device_ip_address,
 		user		=> $username,
-		$password	=> $password,
-		recursive	=> 1,
+		password	=> $password,
 		timeout		=> 120,
 		);
-	my $ret = $scp->scp('/var/opt/tms/configs/*', $configuration_filename);
+	my $ret = $scp->scp(':/var/opt/tms/configs/*', $configuration_filename);
 	($ret != 1) and &return_code(50, "Couldn't establish SCP !");
 
 	# Change file right
